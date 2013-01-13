@@ -1,0 +1,15 @@
+{
+  "name" : "jttask",
+  "description" : "task",
+  "version" : "0.0.1",
+  "author" : {
+    "name" : "vicanso 腻味",
+    "email" : "vicansocanbico@gmail.com"
+  },
+  "keywords" : [
+    "task"
+  ],
+  "dependencies" : {
+    "underscore" : "latest"
+  }
+}
