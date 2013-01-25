@@ -30,13 +30,17 @@ class Tasks
    * add 添加处理函数
    * @param {Function} handle 处理函数
    * @param {Array} args 参数列表
+   * @param {Boolean} mergeSameHandle 合并相同的操作（当有相同的操作正在进行，将新的操作添加到callback列表中，等正在进行的操作完成后，把返回结果复制多份使用）
    * @param {Object} context 函数上下文作用域（handle函数的this指向的对象，默认为null）
    * @return {Task}
   ###
-  add : (handle, args, context = null) ->
+  add : (handle, args, mergeSameHandle = true, context = null) ->
     if !_.isFunction(handle) || !_.isArray(args)
       return @
     cbf = args.pop()
+    if !_.isBoolean mergeSameHandle
+      context = mergeSameHandle
+      mergeSameHandle = true
     if !_.isFunction cbf
       return @
     opts = @opts
@@ -51,7 +55,7 @@ class Tasks
       handle : handle
       se : se
       context : context
-    if opts.autoNext
+    if opts.autoNext && mergeSameHandle
       index = @_getDoingTaskIndex task
       if ~index
         task = opts.doingTasks[index]
@@ -167,8 +171,11 @@ class Tasks
     if ~index
       cbfs = doingTasks[index].cbfs
       doingTasks.splice index, 1
+      data = JSON.stringify args.pop()
       _.each cbfs, (cbf) ->
+        args.push JSON.parse data
         cbf.apply null, args
+        args.pop()
     return @
   ###*
    * _isMaxTaskRunning 判断是否已有limit数量的handle在执行了
@@ -186,6 +193,8 @@ class Tasks
    * @return {String} 
   ###
   _serialization : (args) ->
+    if args._se
+      return args.se
     serializationList = []
     _.each args, (arg) ->
       if! _.isFunction arg
