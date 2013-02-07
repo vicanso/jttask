@@ -98,13 +98,11 @@ class Tasks
   _wrapCompleteCbf : (task, cbf) ->
     self = @
     opts = @opts
-    cbf = _.wrap cbf, (func, args...) ->
-      if !arguments.callee.isCalled
-        func.apply null, args
-        if opts.autoNext
-          self._removeDoingTask task, args
-        self.next()
-      arguments.callee.isCalled = true
+    cbf = _.once _.wrap cbf, (func, args...) ->
+      func.apply null, args
+      if opts.autoNext
+        self._removeDoingTask task, args
+      self.next()
     return cbf
   ###*
    * _do 开始执行任务,判断当前执行中的任务数，如果小于limit，则执行下一个（每次add和next都会调用do）
