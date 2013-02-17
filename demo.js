@@ -1,5 +1,5 @@
 (function() {
-  var Task, fs, readFile, taskObj, _;
+  var Task, fs, taskObj, _;
 
   Task = require('./index');
 
@@ -9,35 +9,41 @@
 
   taskObj = new Task({
     limit: 10,
+    max: 0,
     timeOut: 5000,
     autoNext: true
   });
 
-  readFile = function(file, cbf) {
-    return fs.readFile(file, function(err, data) {
-      return setTimeout(function() {
-        return cbf(err, data);
-      }, 3000);
-    });
-  };
-
   (function() {
-    var timer, total;
-    total = 0;
-    return timer = setInterval(function() {
-      var args, cbf, file;
-      total++;
-      if (total > 50) {
-        clearInterval(timer);
-        return;
+    var args, cbf, completeTotal, data, dataArr, errTotal, i, total, writeFile, _i, _j, _results;
+    total = 5000;
+    dataArr = [];
+    for (i = _i = 0; _i <= 100; i = ++_i) {
+      dataArr.push('aojfoeajfoeaofe');
+    }
+    data = 'a';
+    console.time('TEST');
+    completeTotal = 0;
+    errTotal = 0;
+    writeFile = function(file, data, cbf) {
+      return fs.writeFile(file, data, cbf);
+    };
+    cbf = function(err) {
+      completeTotal++;
+      if (err) {
+        errTotal++;
       }
-      file = _.random(0, 5) + 'test.txt';
-      cbf = function(err, data) {
-        return console.dir(err);
-      };
-      args = [file, cbf];
-      return taskObj.add(readFile, args);
-    });
+      if (completeTotal === total) {
+        console.dir("errTotal:" + errTotal);
+        return console.timeEnd('TEST');
+      }
+    };
+    _results = [];
+    for (i = _j = 0; 0 <= total ? _j < total : _j > total; i = 0 <= total ? ++_j : --_j) {
+      args = ["d:/tmp/" + i + ".txt", data, cbf];
+      _results.push(taskObj.add(writeFile, args));
+    }
+    return _results;
   })();
 
 }).call(this);
