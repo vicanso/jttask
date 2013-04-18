@@ -13,7 +13,7 @@ class Tasks
   ###
   constructor : (options) ->
     defaults = 
-      limit : 10
+      limit : 500
       timeOut : 5000
       autoNext : true
     opts = _.extend defaults, options
@@ -62,7 +62,7 @@ class Tasks
         task.cbfs ?= []
         task.cbfs.push cbf
         return @
-      cbf = @_wrapCompleteCbf task, cbf
+    cbf = @_wrapCompleteCbf task, cbf
     args.push cbf
     task.args = args
     tasks.push task
@@ -98,12 +98,12 @@ class Tasks
   _wrapCompleteCbf : (task, cbf) ->
     self = @
     opts = @opts
-    cbf = _.once _.wrap cbf, (func, args...) ->
-      func.apply null, args
+    newCbf = _.once _.wrap cbf, (func, args...) ->
       if opts.autoNext
         self._removeDoingTask task, args
       self.next()
-    return cbf
+      func.apply null, args
+    return newCbf
   ###*
    * _do 开始执行任务,判断当前执行中的任务数，如果小于limit，则执行下一个（每次add和next都会调用do）
    * @return {Task}
@@ -140,7 +140,7 @@ class Tasks
       handle : handle
     insertIndex = _.sortedIndex doingTasks, newDoingTask, (task) ->
       return task.se
-    doingTasks.splice insertIndex, 0, newDoingTask
+    opts.doingTasks = doingTasks.splice insertIndex, 0, newDoingTask
     return @
   ###*
    * _getDoingTaskIndex 获取正在进行的task的index
@@ -168,7 +168,7 @@ class Tasks
     index = @_getDoingTaskIndex removeTask
     if ~index
       cbfs = doingTasks[index].cbfs
-      doingTasks.splice index, 1
+      opts.doingTasks = doingTasks.splice index, 1
       data = JSON.stringify args.pop()
       _.each cbfs, (cbf) ->
         args.push JSON.parse data
